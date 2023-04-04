@@ -1,5 +1,6 @@
 import torch
 import timm
+from logzero import logger
 
 import sys
 sys.path.append('/home/saiteja/extra/ClassificationModels')
@@ -14,6 +15,7 @@ def get_model(opt):
     # add intermediate layers and their neurons
     num_ftrs = base_model.fc.in_features
     layers = [num_ftrs] + opt.intermediate_layers + [opt.num_classes]
+
     modules = []
     for i in range(len(layers) - 2):
         modules.append(torch.nn.Linear(layers[i], layers[i + 1]))
@@ -34,18 +36,22 @@ class ModelTrain:
     
     def get_optimizer(self):
 
-        if self.get_optimizer == 'Adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr=self.opt.lr)
+        if self.opt.optimizer== 'Adam':
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.opt.lr)
 
+        elif self.opt.optimizer== 'SGD':
+            optimizer = torch.optim.SGD(self.model.parameters(), lr=self.opt.lr, momentum=self.opt.momentum)
         
-        elif self.get_optimizer == 'SGD':
-            optimizer = torch.optim.SGD(model.parameters(), lr=self.opt.lr, momentum=self.opt.momentum)
-        
-        elif self.get_optimizer == 'RMSprop':
-            optimizer = torch.optim.RMSprop(model.parameters(), lr=self.opt.lr, momentum=self.opt.momentum)
+        elif self.opt.optimizer== 'RMSprop':
+            optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.opt.lr, momentum=self.opt.momentum)
 
-        elif self.get_optimizer == 'Adagrad':
-            optimizer = torch.optim.Adagrad(model.parameters(), lr=self.opt.lr, momentum=self.opt.momentum)
+        elif self.opt.optimizer== 'Adagrad':
+            optimizer = torch.optim.Adagrad(self.model.parameters(), lr=self.opt.lr, momentum=self.opt.momentum)
+        
+        else:
+            logger.info(f'choosen optimmizer is { self.opt.optimizer}')
+            logger.info('Optimizer not supported')
+            raise ValueError('Optimizer not supported')
 
         
         return optimizer
@@ -53,15 +59,29 @@ class ModelTrain:
 
     def get_loss(self):
 
-        if self.opt.loss == 'MSE':
+        if self.opt.loss_fn == 'MSE':
             loss_fn = torch.nn.MSELoss()
 
-        elif self.opt.loss == 'CrossEntropy':
+        elif self.opt.loss_fn == 'CrossEntropyLoss':
             loss_fn = torch.nn.CrossEntropyLoss()
+
+        elif self.opt.loss_fn == 'BCE':
+            loss_fn = torch.nn.BCELoss()
+        
+        else:
+            logger.info(f'choosen loss function is { self.opt.loss_fn}')
+            logger.info('Loss function not supported')
+            raise ValueError('Loss function not supported')
+    
+        return loss_fn
             
+
+
+
+
     
     def train(self, dataloader):
-        model = get_model(self.opt)
+        self.model = get_model(self.opt)
 
         val_losses = []
         train_losses = []
@@ -74,26 +94,35 @@ class ModelTrain:
             train_loss = 0.0
             val_loss = 0.0
 
-            model.train()
+
+            # ------------------------------------------------------training the module
+            self.model.train()
             for data, target in dataloader['train']:
                 optimizer.zero_grad()
-                output = model(data)
+                output = self.model(data)
                 loss = loss_fn(output, target)
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()*data.size(0)
 
-            model.eval()
+
+            # --------------------------------------------------------validation the module
+            self.model.eval()
             for data, target in dataloader['val']:
-                output = model(data)
+                output = self.model(data)
                 loss = loss_fn(output, target)
                 val_loss += loss.item()*data.size(0)
 
+
+
+            #--------------------------------------------------------saving the losses
             train_loss = train_loss/len(dataloader['train'].sampler)
             val_loss = val_loss/len(dataloader['val'].sampler)
 
+
             train_losses.append(train_loss)
             val_losses.append(val_loss)
+
 
             print('Epoch: {} \tTraining Loss: {:.6f} \tValidation Loss: {:.6f}'.format(
                 epoch+1, 
@@ -103,11 +132,9 @@ class ModelTrain:
 
 
 
-
 if __name__ == '__main__':
 
     opt = TrainOptions().parse()
     opt.modelname = 'resnet34'
     model = get_model(opt)
     print(model)
-

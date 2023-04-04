@@ -51,6 +51,6 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--gamma', type=float, default=0.1, help='gamma')
 
         #loss function
-        self.parser.add_argument('--loss_fn', type=str, default=['CrossEntropyLoss','precision','recall'], help='loss function to use')
+        self.parser.add_argument('--loss_fn', type=str, default='CrossEntropyLoss', help='loss function to use')
 
         self.isTrain = True

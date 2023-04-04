@@ -146,6 +146,5 @@ if __name__ == '__main__':
         #create a dataloader for the dataset
         custom_dataloader = get_dataloader(custom_dataset, batch_size=batch_size)
 
-
         #save images from the dataloader
         save_images_dataloader(custom_dataloader, f'images/{aug}.png')
