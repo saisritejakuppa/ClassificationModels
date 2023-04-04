@@ -123,7 +123,6 @@ if __name__ == '__main__':
 
     #create a dictionary of augmentations
     aug_dict = {
-        'blur': {'blur_limit': 3},
         'RandomHorizontalFlip': {},
         'RandomVerticalFlip': {},
         'RandomRotation': {'limit': 30},
