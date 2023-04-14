@@ -9,6 +9,8 @@ sys.path.append('/home/saiteja/extra/ClassificationModels')
 from options.train_options import TrainOptions
 # from data.dataloading import get_dataloader, save_images_dataloader
 from tqdm import tqdm
+from torch_lr_finder import LRFinder
+
 
 
 
@@ -70,6 +72,8 @@ class ModelTrain:
             raise ValueError('Optimizer not supported')
 
 
+        # if self.opt.auto_lr_finder == True:
+        #     self.opt.lr_schedule = None
 
         if self.opt.lr_schedule == 'step':
             scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=self.opt.lr_step_size, gamma=self.opt.lr_gamma)
@@ -124,10 +128,14 @@ class ModelTrain:
             self.best_val_epoch = epoch
 
     def train(self, model, dataloader):
+
+        print(self.opt)
+
         self.model = model
 
         # Move model to GPU based on device
         self.model = self.model.to(self.opt.device)
+
 
         optimizer, scheduler = self.get_optimizer()
         loss_fn = self.get_loss()
@@ -135,12 +143,54 @@ class ModelTrain:
         val_losses = []
         train_losses = []
 
-
-
         # Initialize early stopping variables
         early_stop = False
         early_stop_counter = 0
         best_val_loss = float('inf')
+
+        #remove the existing lr_sheduler
+
+        # logger.info(self.opt.auto_lr_finder)
+
+        # if self.opt.auto_lr_finder:
+            
+        #     #between 0.1 to 1e-7
+        #     lr_finder = LRFinder(model, optimizer, loss_fn, device=self.opt.device, memory_cache=True, )
+
+        #     lr_finder = LRFinder(model, optimizer, loss_fn, device=self.opt.device)
+        #     lr_finder.range_test(dataloader['train'], end_lr=100, num_iter=100)
+
+        logger.info('==================================================')
+
+        
+        logger.info("model info")
+        print(model)
+        logger.info("optimizer info")
+        print(optimizer)
+        logger.info("loss function info")
+        print(loss_fn)
+        logger.info("scheduler info")
+        print(scheduler)
+
+        #write to txt values
+        with open(os.path.join(self.opt.model_save_path, 'model_info.txt'), 'w') as f:
+            f.write('==================================================\n')
+            f.write("model info\n")
+            f.write(str(model))
+            f.write("optimizer info\n")
+            f.write(str(optimizer))
+            f.write("loss function info\n")
+            f.write(str(loss_fn))
+            f.write("scheduler info\n")
+            f.write(str(scheduler))
+            f.write('==================================================\n')
+
+        logger.info('==================================================')
+
+
+
+
+
 
         for epoch in range(self.opt.n_epochs):
             train_loss = 0.0
@@ -166,8 +216,6 @@ class ModelTrain:
                 if self.opt.loss_fn == 'BCEWithLogitsLoss':output = model.sigmoid(output.squeeze())
                 else: pass
 
-                print(output.shape)
-
                 loss = loss_fn(output, target)
                 loss.backward()
                 optimizer.step()
@@ -186,7 +234,7 @@ class ModelTrain:
                     target = target.to(self.opt.device)
                     output = self.model(data)
 
-                    if opt.loss_fn == 'BCEWithLogitsLoss':output = model.sigmoid(output.squeeze())
+                    if self.opt.loss_fn == 'BCEWithLogitsLoss':output = model.sigmoid(output.squeeze())
                     else: pass
 
 
@@ -208,10 +256,12 @@ class ModelTrain:
             # Print results
             print(f"Epoch {epoch+1}: training_loss = {train_loss:.6f}, validation_loss = {val_loss:.6f}, training_acc = {train_acc:.6f}, validation_acc = {val_acc:.6f}")
 
+            #print current learning rate from the optimizer
+            print(f"Current learning rate: {optimizer.param_groups[0]['lr']}")
 
             #save the results based on the epoch
-            self.opt.best_model_path = os.path.join(self.opt.model_save_path, f"{self.opt.modelname}_{epoch}_best.pth")
-            self.opt.current_model_path = os.path.join(self.opt.model_save_path, f"{self.opt.modelname}_{epoch}_current.pth")
+            self.opt.best_model_path = os.path.join(self.opt.model_save_path, f"{self.opt.modelname}_best.pth")
+            self.opt.current_model_path = os.path.join(self.opt.model_save_path, f"{self.opt.modelname}_current.pth")
 
 
             # Early stopping based on validation loss
@@ -239,9 +289,8 @@ class ModelTrain:
             # Learning rate scheduling
             if self.opt.lr_schedule == 'ReduceLROnPlateau':
                 scheduler.step(val_loss)
-            elif self.opt.lr_schedule != 'None':
+            elif self.opt.lr_schedule != None:
                 scheduler.step()
-
 
         return train_losses, val_losses
 

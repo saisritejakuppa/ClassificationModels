@@ -5,11 +5,9 @@ from options.train_options import TrainOptions
 from data.dataloading import get_dataloader, save_images_dataloader, ImageDirDataset, augmentations
 import os
 import toml
+import json
 
-def main():
-
-    opt = TrainOptions().parse()
-
+def main(opt):
     aug_dict = toml.load(opt.augmentations_toml)
 
     custom_dataset = ImageDirDataset(opt.dataroot, transform=augmentations(aug_dict))
@@ -38,6 +36,10 @@ def main():
     #print mapped to ints in the dataset    
     print('classes mapped to ints in the dataset are', custom_dataset.class_to_idx)
 
+    #save this as a jsono to the opt.model_save_path
+    with open(f'{opt.model_save_path}/class_to_idx.json', 'w') as f:
+        json.dump(custom_dataset.class_to_idx, f)
+
     os.makedirs(f'{opt.model_save_path}/images', exist_ok=True)
 
     #save images from the dataloader
@@ -50,9 +52,12 @@ def main():
     #model training
     modeltrain = ModelTrain(opt)
     modeltrain.train(model, dataloader)
-    print(model)
 
-
+    #save all the opt values to a file in the opt.model_save_path
+    with open(f'{opt.model_save_path}/opt.txt', 'w') as f:
+        for k, v in vars(modeltrain.opt).items():
+            f.write(f'{k}: {v} \n')
 
 if __name__ == '__main__':
-    main()
+    opt = TrainOptions().parse()
+    main(opt)
