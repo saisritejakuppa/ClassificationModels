@@ -4,30 +4,20 @@ from models.model import get_model, ModelTrain
 from options.train_options import TrainOptions
 from data.dataloading import get_dataloader, save_images_dataloader, ImageDirDataset, augmentations
 import os
+import toml
 
 def main():
 
     opt = TrainOptions().parse()
 
-    #dataloader
-
-        #create a dictionary of augmentations
-    aug_dict = {
-        'blur': {'blur_limit': 3},
-        # 'RandomHorizontalFlip': {},
-        # 'RandomVerticalFlip': {},
-        # 'RandomRotation': {'limit': 30},
-        # 'GaussianBlur': {'blur_limit': 3},
-        # 'ColorJitter': {}
-    }
+    aug_dict = toml.load(opt.augmentations_toml)
 
     custom_dataset = ImageDirDataset(opt.dataroot, transform=augmentations(aug_dict))
 
-    # #shuffle the dataset
+    #shuffle the dataset
+    torch.manual_seed(0)
     # custom_dataset = torch.utils.data.Subset(custom_dataset, torch.randperm(len(custom_dataset)).tolist())
-
-
-
+    
     #train, test, val split equal to 0.8, 0.1, 0.1
     train_size = int(0.8 * len(custom_dataset))
     test_size = int(0.1 * len(custom_dataset))
@@ -48,26 +38,18 @@ def main():
     #print mapped to ints in the dataset    
     print('classes mapped to ints in the dataset are', custom_dataset.class_to_idx)
 
-
-    os.makedirs('images', exist_ok=True)
-
+    os.makedirs(f'{opt.model_save_path}/images', exist_ok=True)
 
     #save images from the dataloader
-    save_images_dataloader(dataloader['train'], 'images/train.png')
-    save_images_dataloader(dataloader['test'], 'images/test.png')
-    save_images_dataloader(dataloader['val'], 'images/val.png')
+    save_images_dataloader(dataloader['train'], f'{opt.model_save_path}/images/train.png')
+    save_images_dataloader(dataloader['test'], f'{opt.model_save_path}/images/test.png')
+    save_images_dataloader(dataloader['val'], f'{opt.model_save_path}/images/val.png')
 
-
-    #model initialization
-    opt.modelname = 'resnet34'
     model = get_model(opt)
-
 
     #model training
     modeltrain = ModelTrain(opt)
-
     modeltrain.train(model, dataloader)
-
     print(model)
 
 

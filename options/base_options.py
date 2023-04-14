@@ -19,6 +19,9 @@ class BaseOptions():
         #model
         self.parser.add_argument('--model', type=str, default='resnet18', help='model to use')
 
+        #model_save_path
+        self.parser.add_argument('--model_save_path', type=str, default='./model_outputs', help='path to save the model')
+
     def parse(self):
         if not self.initialized:
             self.initialize()
