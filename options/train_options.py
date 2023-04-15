@@ -5,7 +5,7 @@ class TrainOptions(BaseOptions):
         BaseOptions.initialize(self)
 
         #dataset root path
-        self.parser.add_argument('--dataroot', type=str, default='/home/saiteja/experimentation_classification/datasets/Train_val', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
+        self.parser.add_argument('--dataroot', type=str, default='/home/saiteja/experimentation_classification/datasets/Train_val/refined', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
 
         #model name
         self.parser.add_argument('--modelname', type=str, default='resnet18', help='name of the experiment. It decides where to store samples and models')
@@ -22,14 +22,12 @@ class TrainOptions(BaseOptions):
         #activation function
         self.parser.add_argument('--activation_fn', type=str, default='ReLU', help='activation function to use')
 
-        #batch norm
-        self.parser.add_argument('--activation_fn', type=str, default='ReLU', help='activation function to use')
 
         # for displays
         self.parser.add_argument('--display_freq', type=int, default=100, help='frequency of showing training results on screen')
 
         #epochs
-        self.parser.add_argument('--n_epochs', type=int, default=1, help='number of epochs of training')
+        self.parser.add_argument('--n_epochs', type=int, default=100, help='number of epochs of training')
 
         #batch size
         self.parser.add_argument('--batch_size', type=int, default=64, help='size of the batches')

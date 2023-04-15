@@ -13,29 +13,24 @@ from torch_lr_finder import LRFinder
 
 import wandb
 
-
-
-
 def get_model(opt):
-
     base_model = timm.create_model(opt.modelname, pretrained=True)
 
-    # add intermediate layers and their neurons
-    num_ftrs = base_model.fc.in_features
+    # Replace final layer with custom layers
+    num_ftrs = base_model.num_features
     layers = [num_ftrs] + opt.intermediate_layers + [opt.num_classes]
 
     modules = []
     for i in range(len(layers) - 2):
         modules.append(torch.nn.Linear(layers[i], layers[i + 1]))
-
         if opt.dropout > 0:
             modules.append(torch.nn.Dropout(opt.dropout))
-        
         if opt.activation_fn is not None:
             modules.append(torch.nn.__dict__[opt.activation_fn]())
     
     modules.append(torch.nn.Linear(layers[-2], layers[-1]))
-    base_model.fc = torch.nn.Sequential(*modules)
+    base_model.reset_classifier(num_classes=0)
+    base_model = torch.nn.Sequential(base_model, torch.nn.Sequential(*modules))
 
     # Add sigmoid activation if using BCEWithLogitsLoss
     if opt.loss_fn == 'BCEWithLogitsLoss':
@@ -44,16 +39,12 @@ def get_model(opt):
     return base_model
 
 
-
 class ModelTrain:
     def __init__(self, opt):
         self.opt = opt
         self.best_val_loss = float('inf')
         self.best_val_epoch = -1
 
-        
-
-    
     def get_optimizer(self):
 
         if self.opt.optimizer== 'Adam':

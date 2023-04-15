@@ -1,53 +1,53 @@
 [blur]
 blur_limit = 7
-p = 0.3
+p = 0.0
 
 [RandomHorizontalFlip]
-p = 0.3
+p = 0.0
 
 [RandomVerticalFlip]
-p = 0.3
+p = 0.0
 
 [RandomRotation]
 limit = 30
-p = 0.3
+p = 0.0
 
 [GaussianBlur]
 blur_limit = 7
 p = 1
 
 [ColorJitter]
-p = 0.3
+p = 0.0
 
 [RandomCrop]
 height = 224
 width = 224
-p = 0.3
+p = 0.0
 
 [RandomBrightnessContrast]
 brightness_limit = 1.0
 contrast_limit = 1.0
-p = 0.3
+p = 0.0
 
 [Cutout]
 num_holes = 1
 max_h_size = 64
 max_w_size = 64
-p = 0.3
+p = 0.0
 
 [RandomResizedCrop]
 height = 224
 width = 224
-p = 0.3
+p = 0.0
 
 [RandomRain]
-p = 0.3
+p = 0.0
 brightness_coefficient=0.9
 drop_width=1
 blur_value=5
 
 [RandomFog]
-p = 0.3
+p = 0.0
 
 [RandomSunFlare]
 p = 0.0
@@ -55,7 +55,7 @@ flare_roi=[0.0, 0.0, 1.0, 1.0]
 angle_lower=0.5
 
 [RandomSnow]
-p = 0.3
+p = 0.0
 brightness_coeff=2.5
 snow_point_lower=0.3
 snow_point_upper=1.0

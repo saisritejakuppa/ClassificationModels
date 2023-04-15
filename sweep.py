@@ -42,17 +42,14 @@ def main():
         'val': get_dataloader(val_dataset, batch_size=opt.batch_size)
     }
 
-    #print the classes in the dataset
-    print('classes in the dataset are', custom_dataset.classes)
-
     #print mapped to ints in the dataset    
-    print('classes mapped to ints in the dataset are', custom_dataset.class_to_idx)
+    print('classes mapped to ints in the dataset are', test_dataset.class_to_idx)
 
     os.makedirs(opt.model_save_path, exist_ok=True)
 
     #save this as a jsono to the opt.model_save_path
     with open(f'{opt.model_save_path}/class_to_idx.json', 'w') as f:
-        json.dump(custom_dataset.class_to_idx, f)
+        json.dump(test_dataset.class_to_idx, f)
 
     os.makedirs(f'{opt.model_save_path}/images', exist_ok=True)
 
