@@ -24,18 +24,17 @@ def main():
     print(opt)
 
     aug_dict = toml.load(opt.augmentations_toml)
-    custom_dataset = ImageDirDataset(opt.dataroot, transform=augmentations(aug_dict))
+    # custom_dataset = ImageDirDataset(opt.dataroot, transform=augmentations(aug_dict))
 
-    #shuffle the dataset
-    torch.manual_seed(0)
-    # custom_dataset = torch.utils.data.Subset(custom_dataset, torch.randperm(len(custom_dataset)).tolist())
-    
-    #train, test, val split equal to 0.8, 0.1, 0.1
-    train_size = int(0.8 * len(custom_dataset))
-    test_size = int(0.1 * len(custom_dataset))
-    val_size = len(custom_dataset) - train_size - test_size
 
-    train_dataset, test_dataset, val_dataset = torch.utils.data.random_split(custom_dataset, [train_size, test_size, val_size])
+
+    train_dataset = ImageDirDataset(os.path.join(opt.dataroot, 'train'), transform=augmentations(aug_dict))
+
+    #make no augmentations for val and test datasets( except for resizing and normalizing )
+    aug_dict = {}
+
+    val_dataset = ImageDirDataset(os.path.join(opt.dataroot, 'val'), transform=augmentations(aug_dict))
+    test_dataset = ImageDirDataset(os.path.join(opt.dataroot, 'test'), transform=augmentations(aug_dict))
 
     dataloader = {
         'train': get_dataloader(train_dataset, batch_size=opt.batch_size),

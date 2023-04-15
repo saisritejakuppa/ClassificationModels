@@ -5,7 +5,7 @@ class TrainOptions(BaseOptions):
         BaseOptions.initialize(self)
 
         #dataset root path
-        self.parser.add_argument('--dataroot', type=str, default='/home/saiteja/detectwork/helmetdetection/completedataset/helmetclassification_helmetai', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
+        self.parser.add_argument('--dataroot', type=str, default='/home/saiteja/experimentation_classification/datasets/Train_val', help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
 
         #model name
         self.parser.add_argument('--modelname', type=str, default='resnet18', help='name of the experiment. It decides where to store samples and models')
