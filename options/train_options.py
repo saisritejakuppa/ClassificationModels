@@ -22,6 +22,9 @@ class TrainOptions(BaseOptions):
         #activation function
         self.parser.add_argument('--activation_fn', type=str, default='ReLU', help='activation function to use')
 
+        #batch norm
+        self.parser.add_argument('--activation_fn', type=str, default='ReLU', help='activation function to use')
+
         # for displays
         self.parser.add_argument('--display_freq', type=int, default=100, help='frequency of showing training results on screen')
 
@@ -84,5 +87,9 @@ class TrainOptions(BaseOptions):
 
         #device
         self.parser.add_argument('--device', type=str, default='cuda', help='device to use')
+
+
+        #wandb
+        self.parser.add_argument('--wandb', type=bool, default=True, help='log the parameters')
 
         self.isTrain = True

@@ -6,8 +6,22 @@ from data.dataloading import get_dataloader, save_images_dataloader, ImageDirDat
 import os
 import toml
 import json
+import wandb
+from logzero import logger
+
 
 def main(opt):
+
+    # logger.info('configs')
+    # print(opt)
+
+    wandb.init(project = 'classification sweeps')
+    opt = wandb.config
+    
+    logger.info('configs')
+    print(opt)
+
+
     aug_dict = toml.load(opt.augmentations_toml)
 
     custom_dataset = ImageDirDataset(opt.dataroot, transform=augmentations(aug_dict))

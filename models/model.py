@@ -11,6 +11,8 @@ from options.train_options import TrainOptions
 from tqdm import tqdm
 from torch_lr_finder import LRFinder
 
+import wandb
+
 
 
 
@@ -28,7 +30,7 @@ def get_model(opt):
 
         if opt.dropout > 0:
             modules.append(torch.nn.Dropout(opt.dropout))
-
+        
         if opt.activation_fn is not None:
             modules.append(torch.nn.__dict__[opt.activation_fn]())
     
@@ -148,6 +150,12 @@ class ModelTrain:
         early_stop_counter = 0
         best_val_loss = float('inf')
 
+
+
+
+
+
+
         #remove the existing lr_sheduler
 
         # logger.info(self.opt.auto_lr_finder)
@@ -160,17 +168,20 @@ class ModelTrain:
         #     lr_finder = LRFinder(model, optimizer, loss_fn, device=self.opt.device)
         #     lr_finder.range_test(dataloader['train'], end_lr=100, num_iter=100)
 
-        logger.info('==================================================')
+        # logger.info('==================================================')
 
         
-        logger.info("model info")
-        print(model)
-        logger.info("optimizer info")
-        print(optimizer)
-        logger.info("loss function info")
-        print(loss_fn)
-        logger.info("scheduler info")
-        print(scheduler)
+        # logger.info("model info")
+        # print(model)
+        # logger.info("optimizer info")
+        # print(optimizer)
+        # logger.info("loss function info")
+        # print(loss_fn)
+        # logger.info("scheduler info")
+        # print(scheduler)
+
+
+
 
         #write to txt values
         with open(os.path.join(self.opt.model_save_path, 'model_info.txt'), 'w') as f:
@@ -185,10 +196,11 @@ class ModelTrain:
             f.write(str(scheduler))
             f.write('==================================================\n')
 
-        logger.info('==================================================')
+        # logger.info('==================================================')
 
 
-
+        if self.opt.wandb:
+            wandb.watch(model, log="all")
 
 
 
@@ -264,12 +276,16 @@ class ModelTrain:
             self.opt.current_model_path = os.path.join(self.opt.model_save_path, f"{self.opt.modelname}_current.pth")
 
 
+            if self.opt.wandb:
+                wandb.log({"train_loss": train_loss, "val_loss": val_loss, "train_acc": train_acc, "val_acc": val_acc, "epoch": epoch+1})
+
+
             # Early stopping based on validation loss
             if val_loss < best_val_loss - self.opt.early_stop_delta:
                 early_stop_counter = 0
                 best_val_loss = val_loss
                 # Save the current model checkpoint
-                torch.save(self.model.state_dict(), 'current_model.pt')
+                # torch.save(self.model.state_dict(), 'current_model.pt')
             else:
                 early_stop_counter += 1
                 if early_stop_counter >= self.opt.early_stop_epochs:
@@ -281,10 +297,10 @@ class ModelTrain:
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 self.best_epoch = epoch + 1
-                torch.save(self.model.state_dict(), self.opt.best_model_path)
+                torch.save(self.model, self.opt.best_model_path)
 
             # Save current epoch model
-            torch.save(self.model.state_dict(), self.opt.current_model_path)
+            torch.save(self.model, self.opt.current_model_path)
 
             # Learning rate scheduling
             if self.opt.lr_schedule == 'ReduceLROnPlateau':
